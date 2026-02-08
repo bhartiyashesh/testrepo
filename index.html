@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creative Ideas Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 {
+            color: #4CAF50;
+        }
+        #idea-container {
+            margin: 20px auto;
+            padding: 20px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            max-width: 600px;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #generated-idea {
+            font-size: 18px;
+            margin-top: 20px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <h1>Creative Ideas Generator</h1>
+    <p>Click the button below to generate a random creative idea. Use it as a prompt for writing, art, business, or anything else!</p>
+    
+    <div id="idea-container">
+        <button onclick="generateIdea()">Generate Idea</button>
+        <div id="generated-idea"></div>
+    </div>
+
+    <script>
+        const ideas = [
+            "Design a city where all buildings are made from recycled materials.",
+            "Invent a new sport that combines elements of soccer and chess.",
+            "Create a story about a time-traveling chef who fixes historical disasters with food.",
+            "Build an app that translates animal sounds into human languages.",
+            "Imagine a world where emotions are traded like currency.",
+            "Develop a gadget that turns dreams into visual art.",
+            "Write a poem from the perspective of a forgotten umbrella.",
+            "Plan a festival celebrating unusual talents, like speed-napping.",
+            "Design fashion inspired by ocean creatures.",
+            "Create a board game based on quantum physics principles.",
+            "Invent a musical instrument using everyday household items.",
+            "Story about a robot learning to appreciate nature.",
+            "App that suggests random acts of kindness based on your location.",
+            "World where shadows have personalities and rebel against their owners.",
+            "Gadget that predicts weather by analyzing bird behavior.",
+            "Poem about the secret life of clouds.",
+            "Festival for imaginary friends.",
+            "Fashion line based on mathematical fractals.",
+            "Board game simulating evolution of species.",
+            "Musical where songs are sung in invented languages."
+        ];
+
+        function generateIdea() {
+            const randomIndex = Math.floor(Math.random() * ideas.length);
+            const idea = ideas[randomIndex];
+            document.getElementById('generated-idea').innerText = idea;
+        }
+    </script>
+</body>
+</html>
