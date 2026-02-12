@@ -7,8 +7,6 @@ name: Build & Ship Swarm Deploy
 on:
   push:
     branches: [main]
-  pull_request:
-    types: [opened, synchronize, reopened, closed]
 
 env:
   REGISTRY: ghcr.io
@@ -52,11 +50,13 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Trigger Swarm Deploy
-        if: github.event_name == 'push'
         env:
           COMMIT_MSG: ${{ github.event.head_commit.message }}
+          CONTROLLER_URL: ${{ secrets.SWARM_CONTROLLER_URL }}
+          DEPLOY_TOKEN: ${{ secrets.SWARM_DEPLOY_TOKEN }}
         run: |
-          IMAGE="ghcr.io/bhartiyashesh/testrepo:$(echo ${{ github.sha }} | cut -c1-7)"
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          IMAGE="ghcr.io/bhartiyashesh/testrepo:${SHORT_SHA}"
           echo "Deploying $IMAGE to swarm..."
 
           PAYLOAD=$(jq -n \
@@ -66,25 +66,21 @@ jobs:
             --arg msg "$COMMIT_MSG" \
             '{image: $image, trigger: $trigger, commit_sha: $sha, commit_message: $msg}')
 
-          RESPONSE=$(curl -sS -w "
-%{http_code}" -X POST \
-            "${{ secrets.SWARM_CONTROLLER_URL }}/api/v1/swarm/deploy" \
-            -H "Authorization: Bearer ${{ secrets.SWARM_DEPLOY_TOKEN }}" \
+          HTTP_CODE=$(curl -sS -o /tmp/response.json -w '%{http_code}' -X POST \
+            "${CONTROLLER_URL}/api/v1/swarm/deploy" \
+            -H "Authorization: Bearer ${DEPLOY_TOKEN}" \
             -H "Content-Type: application/json" \
             -d "$PAYLOAD" \
-            --max-time 30 || true)
+            --max-time 30)
 
-          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
-          BODY=$(echo "$RESPONSE" | head -n -1)
-
+          BODY=$(cat /tmp/response.json)
           echo "$BODY"
 
           if [ "$HTTP_CODE" = "202" ] || [ "$HTTP_CODE" = "200" ]; then
-            echo "Deploy triggered\!"
+            echo "Deploy triggered successfully"
             echo "### Deploy Triggered" >> $GITHUB_STEP_SUMMARY
             echo "[https://testrepo.buildandship.it](https://testrepo.buildandship.it)" >> $GITHUB_STEP_SUMMARY
           else
             echo "Deploy trigger failed (HTTP $HTTP_CODE)"
             exit 1
           fi
-
