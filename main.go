@@ -55,3 +55,4 @@ func hostname() string {
 	h, _ := os.Hostname()
 	return h
 }
+// version 2
