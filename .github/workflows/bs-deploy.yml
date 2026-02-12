@@ -53,15 +53,25 @@ jobs:
 
       - name: Trigger Swarm Deploy
         if: github.event_name == 'push'
+        env:
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
         run: |
           IMAGE="ghcr.io/bhartiyashesh/testrepo:$(echo ${{ github.sha }} | cut -c1-7)"
           echo "Deploying $IMAGE to swarm..."
 
-          RESPONSE=$(curl -fsSL -w "\n%%{http_code}" -X POST \
+          PAYLOAD=$(jq -n \
+            --arg image "$IMAGE" \
+            --arg trigger "github_push" \
+            --arg sha "${{ github.sha }}" \
+            --arg msg "$COMMIT_MSG" \
+            '{image: $image, trigger: $trigger, commit_sha: $sha, commit_message: $msg}')
+
+          RESPONSE=$(curl -sS -w "
+%{http_code}" -X POST \
             "${{ secrets.SWARM_CONTROLLER_URL }}/api/v1/swarm/deploy" \
             -H "Authorization: Bearer ${{ secrets.SWARM_DEPLOY_TOKEN }}" \
             -H "Content-Type: application/json" \
-            -d "{\"image\":\"$IMAGE\",\"trigger\":\"github_push\",\"commit_sha\":\"${{ github.sha }}\",\"commit_message\":\"${{ github.event.head_commit.message }}\"}" \
+            -d "$PAYLOAD" \
             --max-time 30 || true)
 
           HTTP_CODE=$(echo "$RESPONSE" | tail -1)
@@ -70,10 +80,11 @@ jobs:
           echo "$BODY"
 
           if [ "$HTTP_CODE" = "202" ] || [ "$HTTP_CODE" = "200" ]; then
-            echo "Deploy triggered!"
+            echo "Deploy triggered\!"
             echo "### Deploy Triggered" >> $GITHUB_STEP_SUMMARY
             echo "[https://testrepo.buildandship.it](https://testrepo.buildandship.it)" >> $GITHUB_STEP_SUMMARY
           else
             echo "Deploy trigger failed (HTTP $HTTP_CODE)"
             exit 1
           fi
+
