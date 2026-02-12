@@ -59,3 +59,4 @@ func hostname() string {
 // version 3 - Thu Feb 12 08:06:23 CST 2026
 // v4 - 1770905837
 // v5 - container IP networking fix
+// v6 - heartbeat fix, full e2e test
